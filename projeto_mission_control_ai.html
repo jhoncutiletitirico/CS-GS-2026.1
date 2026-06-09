@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1180">
+  <title>Sistema de Alerta Digital</title>
+  <style>
+    :root {
+      --bg: #050505;
+      --panel: #141414;
+      --panel-2: #202020;
+      --line: #3a3a3a;
+      --accent: #7f1d3a;
+      --accent-2: #a83255;
+      --text: #f8f8f8;
+      --muted: #c8c8c8;
+      --green: #f8f8f8;
+      --red: #b43a5a;
+      --red-soft: #2a0713;
+      --yellow: #e8e0e0;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-width: 1180px;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 23%, transparent 42%),
+        linear-gradient(145deg, #ffffff 0%, #d7d7d7 8%, #111111 31%, #050505 100%);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      letter-spacing: 0;
+    }
+
+    .page {
+      width: 1120px;
+      margin: 0 auto;
+      padding: 34px 0 34px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 22px;
+      margin-bottom: 24px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: #ffffff;
+      font-size: 12px;
+      line-height: 1;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--text);
+      font-size: 58px;
+      line-height: 0.95;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      width: 670px;
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.35;
+      font-weight: 600;
+    }
+
+    .formula {
+      min-width: 258px;
+      padding: 15px 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #0b0b0b;
+      color: #ffffff;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 16px;
+      font-weight: 800;
+      text-align: center;
+      box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.05);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 470px 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(20, 20, 20, 0.96);
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
+      overflow: hidden;
+    }
+
+    .panel h2 {
+      margin: 0;
+      padding: 20px 22px;
+      border-bottom: 1px solid var(--line);
+      color: var(--text);
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .inputs {
+      padding: 20px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: 52px minmax(0, 1fr) 74px;
+      align-items: center;
+      gap: 16px;
+      min-height: 72px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035));
+    }
+
+    .letter {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid #555555;
+      background: #202020;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 19px;
+    }
+
+    .input-name {
+      display: block;
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.1;
+      font-weight: 800;
+    }
+
+    .input-desc {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.1;
+      font-weight: 600;
+    }
+
+    .toggle {
+      position: relative;
+      width: 66px;
+      height: 36px;
+      justify-self: end;
+    }
+
+    .toggle input {
+      position: absolute;
+      opacity: 0;
+      width: 1px;
+      height: 1px;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background: #424242;
+      cursor: pointer;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    .slider::before {
+      content: "0";
+      position: absolute;
+      left: 4px;
+      top: 4px;
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #d9e5f2;
+      color: #111111;
+      font-size: 12px;
+      font-weight: 900;
+      transition: transform 160ms ease;
+    }
+
+    .toggle input:checked + .slider {
+      background: var(--accent);
+    }
+
+    .toggle input:checked + .slider::before {
+      content: "1";
+      transform: translateX(30px);
+      background: #ffffff;
+      color: var(--accent);
+    }
+
+    .reset-wrap {
+      padding: 0 20px 20px;
+    }
+
+    .reset-btn {
+      width: 100%;
+      min-height: 50px;
+      border: 1px solid #575757;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .reset-btn:hover {
+      background: rgba(255, 255, 255, 0.11);
+    }
+
+    .output-box {
+      margin: 0 20px 14px;
+      min-height: 148px;
+      border: 1px solid var(--red);
+      border-radius: 12px;
+      background: var(--red-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      text-align: left;
+      transition: border-color 160ms ease, background 160ms ease;
+    }
+
+    .output-box.normal {
+      border-color: var(--line);
+      background: #0c0c0c;
+    }
+
+    .lamp {
+      width: 92px;
+      height: 92px;
+      margin: 0;
+      border-radius: 50%;
+      background: #4f647d;
+      box-shadow: inset 0 0 28px rgba(255, 255, 255, 0.16);
+    }
+
+    .lamp.on {
+      background: var(--red);
+      box-shadow: 0 0 42px rgba(255, 77, 103, 0.75), inset 0 0 28px rgba(255, 255, 255, 0.16);
+    }
+
+    .output-title {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1;
+      font-weight: 900;
+    }
+
+    .output-copy {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .signals {
+      padding: 0 20px 18px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .signal {
+      min-height: 62px;
+      padding: 10px;
+      border: 1px solid var(--yellow);
+      border-radius: 7px;
+      background: #241019;
+      text-align: center;
+    }
+
+    .signal span {
+      display: block;
+      color: #ead9df;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .signal strong {
+      display: block;
+      margin-top: 5px;
+      color: #ffffff;
+      font-size: 21px;
+      line-height: 1;
+    }
+
+    .circuit {
+      margin: 0 20px 20px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .circuit svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .wire {
+      fill: none;
+      stroke: #9a9a9a;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .wire.on {
+      stroke: var(--accent-2);
+    }
+
+    .gate {
+      fill: #101010;
+      stroke: #d8d8d8;
+      stroke-width: 2.4;
+    }
+
+    .gate.on {
+      fill: #2a0713;
+      stroke: var(--accent-2);
+    }
+
+    .svg-text {
+      fill: #ffffff;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .svg-small {
+      fill: #c8c8c8;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .table-panel {
+      padding-bottom: 20px;
+    }
+
+    .table-intro {
+      margin: -4px 22px 16px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .table-wrap {
+      margin: 0 20px;
+      max-height: 405px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #0c0c0c;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    th,
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #202020;
+      color: #ffffff;
+    }
+
+    td:last-child,
+    th:last-child {
+      text-align: left;
+    }
+
+    tr.alert {
+      background: rgba(255, 77, 103, 0.19);
+      color: #ffe7eb;
+    }
+
+    tr.current {
+      outline: 2px solid var(--yellow);
+      outline-offset: -2px;
+    }
+
+    footer {
+      padding-top: 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+      font-weight: 800;
+    }
+
+    footer strong {
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <p class="eyebrow">Sistema de lógica digital</p>
+        <h1>Sistema de Alerta Digital</h1>
+        <p class="subtitle">Acione as condições de risco e observe, em tempo real, os sinais intermediários e o alerta principal da missão.</p>
+      </div>
+      <div class="formula">X = AC + EF + D(B + NOT(A))</div>
+    </header>
+
+    <div class="grid">
+      <section class="panel">
+        <h2>Entradas digitais</h2>
+        <div class="inputs" id="inputs"></div>
+        <div class="reset-wrap">
+          <button class="reset-btn" id="resetBtn" type="button">Zerar entradas</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Saída e circuito</h2>
+        <div class="output-box" id="outputBox">
+          <div class="lamp" id="lamp"></div>
+          <div>
+            <p class="output-title" id="outputTitle">X = 0 · NORMAL</p>
+            <p class="output-copy" id="outputCopy">Nenhuma regra crítica foi satisfeita.</p>
+          </div>
+        </div>
+        <div class="signals">
+          <div class="signal"><span>AC</span><strong id="sigAC">0</strong></div>
+          <div class="signal"><span>EF</span><strong id="sigEF">0</strong></div>
+          <div class="signal"><span>B + NOT(A)</span><strong id="sigInner">0</strong></div>
+          <div class="signal"><span>D(B + NOT(A))</span><strong id="sigDInner">0</strong></div>
+        </div>
+        <div class="circuit" aria-label="Circuito lógico da expressão X = AC + EF + D(B + NOT(A))">
+          <svg viewBox="0 0 800 310" role="img">
+            <path id="wireA" class="wire" d="M42 42 H148"/>
+            <path id="wireC" class="wire" d="M42 82 H148"/>
+            <path id="wireE" class="wire" d="M42 132 H148"/>
+            <path id="wireF" class="wire" d="M42 172 H148"/>
+            <path id="wireB" class="wire" d="M42 226 H305"/>
+            <path id="wireAInv" class="wire" d="M78 42 V270 H180"/>
+            <path id="wireD" class="wire" d="M42 276 H480"/>
+
+            <text class="svg-text" x="16" y="47">A</text>
+            <text class="svg-text" x="16" y="87">C</text>
+            <text class="svg-text" x="16" y="137">E</text>
+            <text class="svg-text" x="16" y="177">F</text>
+            <text class="svg-text" x="16" y="231">B</text>
+            <text class="svg-text" x="16" y="281">D</text>
+
+            <path id="gateAC" class="gate" d="M148 22 H198 Q240 22 240 62 Q240 102 198 102 H148 Z"/>
+            <text class="svg-text" x="170" y="68">AND</text>
+            <text class="svg-small" x="162" y="116">AC</text>
+
+            <path id="gateEF" class="gate" d="M148 112 H198 Q240 112 240 152 Q240 192 198 192 H148 Z"/>
+            <text class="svg-text" x="170" y="158">AND</text>
+            <text class="svg-small" x="162" y="206">EF</text>
+
+            <rect id="gateNotA" class="gate" x="180" y="248" width="74" height="42" rx="8"/>
+            <text class="svg-text" x="199" y="274">NOT</text>
+
+            <path id="gateInner" class="gate" d="M305 206 Q360 206 390 247 Q360 288 305 288 Q330 247 305 206 Z"/>
+            <text class="svg-text" x="333" y="252">OR</text>
+            <text class="svg-small" x="313" y="303">B + NOT(A)</text>
+            <path id="wireNotToInner" class="wire" d="M254 270 H305"/>
+
+            <path id="wireAC" class="wire" d="M240 62 H442 V82 H490"/>
+            <path id="wireEF" class="wire" d="M240 152 H442 V122 H490"/>
+            <path id="gateTopOr" class="gate" d="M490 62 Q548 62 580 102 Q548 142 490 142 Q516 102 490 62 Z"/>
+            <text class="svg-text" x="520" y="108">OR</text>
+
+            <path id="wireInner" class="wire" d="M390 247 H430 V226 H480"/>
+            <path id="gateDInner" class="gate" d="M480 206 H530 Q572 206 572 246 Q572 286 530 286 H480 Z"/>
+            <text class="svg-text" x="504" y="252">AND</text>
+            <text class="svg-small" x="486" y="301">D(...)</text>
+
+            <path id="wireTopOr" class="wire" d="M580 102 H614 V132 H644"/>
+            <path id="wireDInner" class="wire" d="M572 246 H614 V172 H644"/>
+            <path id="gateFinal" class="gate" d="M644 112 Q700 112 732 152 Q700 192 644 192 Q670 152 644 112 Z"/>
+            <text class="svg-text" x="674" y="158">OR</text>
+            <path id="wireX" class="wire" d="M732 152 H760"/>
+            <circle id="svgLamp" cx="778" cy="152" r="18" fill="#4f647d" stroke="#d8d8d8" stroke-width="5"/>
+            <text class="svg-text" x="766" y="194">X</text>
+          </svg>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel table-panel">
+      <h2>Tabela verdade completa</h2>
+      <p class="table-intro">A linha da configuração atual recebe contorno amarelo. As linhas vermelhas representam X = 1.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>A</th>
+              <th>B</th>
+              <th>C</th>
+              <th>D</th>
+              <th>E</th>
+              <th>F</th>
+              <th>X</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="truthTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      <div>Mission Control AI · Ciências da Computação · 1CCPF</div>
+      <div><strong>Jhon Cutile Titirico - RM: 571976</strong> | <strong>Nickolas Emanuel - RM: 573483</strong></div>
+    </footer>
+  </div>
+
+  <script>
+    const inputs = [
+      ["A", "Falha de comunicação", "1 = comunicação com a nave indisponível"],
+      ["B", "Temperatura interna crítica", "1 = temperatura fora da faixa segura"],
+      ["C", "Baixo nível de energia", "1 = reserva energética insuficiente"],
+      ["D", "Falha em módulo operacional", "1 = módulo essencial com defeito"],
+      ["E", "Perda de estabilidade", "1 = orientação ou atitude comprometida"],
+      ["F", "Alerta da inteligência artificial", "1 = monitor inteligente detectou risco"]
+    ];
+
+    const state = Object.fromEntries(inputs.map(([key]) => [key, 0]));
+
+    function evaluate(values) {
+      const AC = values.A && values.C;
+      const EF = values.E && values.F;
+      const inner = values.B || !values.A;
+      const DInner = values.D && inner;
+      const X = Number(AC || EF || DInner);
+      return {
+        AC: Number(AC),
+        EF: Number(EF),
+        inner: Number(inner),
+        DInner: Number(DInner),
+        X
+      };
+    }
+
+    function renderInputs() {
+      const root = document.querySelector("#inputs");
+      root.innerHTML = "";
+
+      for (const [key, title, desc] of inputs) {
+        const row = document.createElement("label");
+        row.className = "input-row";
+        row.innerHTML = `
+          <span class="letter">${key}</span>
+          <span>
+            <span class="input-name">${title}</span>
+            <span class="input-desc">${desc}</span>
+          </span>
+          <span class="toggle">
+            <input type="checkbox" id="input-${key}" aria-label="${key} ${title}">
+            <span class="slider"></span>
+          </span>
+        `;
+        root.appendChild(row);
+        row.querySelector("input").addEventListener("change", (event) => {
+          state[key] = event.target.checked ? 1 : 0;
+          render();
+        });
+      }
+    }
+
+    function renderTruthTable() {
+      const body = document.querySelector("#truthTable");
+      body.innerHTML = "";
+
+      for (let n = 0; n < 64; n += 1) {
+        const values = {
+          A: (n >> 5) & 1,
+          B: (n >> 4) & 1,
+          C: (n >> 3) & 1,
+          D: (n >> 2) & 1,
+          E: (n >> 1) & 1,
+          F: n & 1
+        };
+        const result = evaluate(values);
+        const tr = document.createElement("tr");
+        tr.dataset.bits = `${values.A}${values.B}${values.C}${values.D}${values.E}${values.F}`;
+        if (result.X) tr.classList.add("alert");
+        tr.innerHTML = `
+          <td>${n + 1}</td>
+          <td>${values.A}</td>
+          <td>${values.B}</td>
+          <td>${values.C}</td>
+          <td>${values.D}</td>
+          <td>${values.E}</td>
+          <td>${values.F}</td>
+          <td>${result.X}</td>
+          <td>${result.X ? "ALERTA" : "NORMAL"}</td>
+        `;
+        body.appendChild(tr);
+      }
+    }
+
+    function setOn(id, active) {
+      const element = document.querySelector(id);
+      if (element) element.classList.toggle("on", Boolean(active));
+    }
+
+    function render() {
+      const result = evaluate(state);
+
+      for (const [key] of inputs) {
+        document.querySelector(`#input-${key}`).checked = Boolean(state[key]);
+      }
+
+      document.querySelector("#sigAC").textContent = result.AC;
+      document.querySelector("#sigEF").textContent = result.EF;
+      document.querySelector("#sigInner").textContent = result.inner;
+      document.querySelector("#sigDInner").textContent = result.DInner;
+
+      document.querySelector("#lamp").classList.toggle("on", Boolean(result.X));
+      document.querySelector("#outputBox").classList.toggle("normal", !result.X);
+      document.querySelector("#outputTitle").textContent = result.X ? "X = 1 · ALERTA PRINCIPAL" : "X = 0 · NORMAL";
+      document.querySelector("#outputCopy").textContent = result.X
+        ? "Uma ou mais regras críticas foram satisfeitas."
+        : "Nenhuma regra crítica foi satisfeita.";
+
+      setOn("#wireA", state.A);
+      setOn("#wireC", state.C);
+      setOn("#wireE", state.E);
+      setOn("#wireF", state.F);
+      setOn("#wireB", state.B);
+      setOn("#wireD", state.D);
+      setOn("#wireAInv", !state.A);
+      setOn("#wireNotToInner", !state.A);
+      setOn("#gateAC", result.AC);
+      setOn("#gateEF", result.EF);
+      setOn("#gateNotA", !state.A);
+      setOn("#gateInner", result.inner);
+      setOn("#gateTopOr", result.AC || result.EF);
+      setOn("#gateDInner", result.DInner);
+      setOn("#gateFinal", result.X);
+      setOn("#wireAC", result.AC);
+      setOn("#wireEF", result.EF);
+      setOn("#wireInner", result.inner);
+      setOn("#wireTopOr", result.AC || result.EF);
+      setOn("#wireDInner", result.DInner);
+      setOn("#wireX", result.X);
+      document.querySelector("#svgLamp").setAttribute("fill", result.X ? "#b43a5a" : "#4f647d");
+
+      document.querySelectorAll("#truthTable tr").forEach((row) => row.classList.remove("current"));
+      const bits = `${state.A}${state.B}${state.C}${state.D}${state.E}${state.F}`;
+      const current = document.querySelector(`#truthTable tr[data-bits="${bits}"]`);
+      if (current) current.classList.add("current");
+    }
+
+    renderInputs();
+    renderTruthTable();
+    document.querySelector("#resetBtn").addEventListener("click", () => {
+      for (const [key] of inputs) state[key] = 0;
+      render();
+    });
+    render();
+  </script>
+</body>
+</html>
